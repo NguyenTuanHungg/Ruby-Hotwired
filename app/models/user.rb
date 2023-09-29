@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  include Kaminari::PageScopeMethods
+
 
   enum status: {
     pending: 'pending',
@@ -7,5 +7,4 @@ class User < ApplicationRecord
     rejected: 'rejected'
   }
 
-   paginates_per 5
 end

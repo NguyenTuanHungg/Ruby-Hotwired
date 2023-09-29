@@ -57,5 +57,8 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 
 gem "tailwindcss-rails", "~> 2.0"
 gem 'mysql2', '~> 0.5'
-gem 'kaminari'
+gem 'will_paginate'
 gem 'jquery-rails'
+gem "hotwire-rails", "~> 0.1.3"
+gem 'stimulus-rails'
+

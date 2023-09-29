@@ -3,7 +3,13 @@ class UsersController < ApplicationController
 
   # GET /users or /users.json
   def index
-    @users = User.page(params[:page])
+
+    @users = User.paginate(page: params[:page], per_page: 5)
+    respond_to do |format|
+      format.js
+      format.html
+    end
+    # @users=User.all
   end
 
   # GET /users/1 or /users/1.json
@@ -53,17 +59,17 @@ class UsersController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to root_path, notice: "User was successfully destroyed." }
-      format.json { head :no_content }
+      format.turbo_stream { render turbo_stream: turbo_stream.remove(@user) }
     end
   end
   def search
     # Lấy từ khóa tìm kiếm từ params
-    @search_term = params[:search_term]
+    @query= params[:query]
 
-    @users = User.where("name LIKE ? OR mentor LIKE ?", "%#{@search_term}%", "%#{@search_term}%")
+    @users = User.where("name LIKE ? OR mentor LIKE ?", "%#{@query}%", "%#{@query}%")
+
     render :index
-  end
-
+    end
   def approve_multiple
     selected_user_ids = approve_multiple_params[:user_ids]
     puts selected_user_ids
@@ -88,27 +94,60 @@ class UsersController < ApplicationController
   def filter_by_payment
     @payment = params[:payment]
 
-    if @payment  != "all"
+    if @payment.present? and @payment  != "all"
       @users=User.where(payment:@payment)
-      else if @payment =="all"
+    else if @payment =="all"
       @users=User.all
-
            end
       end
 
+    respond_to do |format|
+      format.js   # Tạo một file filter_by_payment.js.erb
+    end
+  end
 
-    # case payment
-    # when "all"
-    #   @users = User.all
-    # when "paid"
-    #   @users = User.where(payment: "paid")
-    # when "not_paid"
-    #   @users = User.where(payment: "not_paid")
-    # else
-    #   @users = User.all
-    # end
+  def filter_by_status
+    @status = params[:status]
+    if @status.present? and @status != "all"
+      @users = User.where(status: @status)
+    end
+    if @status == "all"
+      @users = User.all
+    end
+    respond_to do |format|
+      format.turbo_stream
+      format.html
 
-    render :index
+    end
+
+  end
+
+  def filter_by_date
+    @date_from = params[:date_from]
+    @date_to = params[:date_to]
+
+    if @date_from.present? && @date_to.present?
+      @users = User.where(time: @date_from..@date_to)
+    else
+      @users = User.all
+    end
+
+    respond_to do |format|
+      format.js
+    end
+  end
+  def filter
+    @payment = params[:payment]
+    @date_from = params[:date_from]
+    @date_to = params[:date_to]
+
+    @users = User.all
+    @users = @users.by_payment(@payment) if @payment.present?
+    @users = @users.by_date_range(@date_from, @date_to)
+
+    respond_to do |format|
+      format.js   # Tạo một file filter.js.erb
+    end
   end
 
   private
